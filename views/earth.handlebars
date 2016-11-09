@@ -1,0 +1,113 @@
+<h1>Earth (Landsat 8 satellite photos)</h1>
+
+<h2>Introduction</h2>
+<p>
+	This endpoint gives us access to images taken by the <a href="https://www.nasa.gov/mission_pages/landsat/main/">Landsat 8</a> satellite. This satellite, which has 
+	been in orbit since 2013, passes over every area on the Earth approximately once every sixteen days, and so provides a useful tool for visualising changes to large areas over time. 
+	Enter coordinates of longitude and latitude into the boxes below to see the most recent landsat image for that location. If you would like an example, you can try a latitude of 40.783 and 
+	a longitude of -73.967 for central park in New York.
+</p>
+<form role="form">
+	<fieldset>
+		<legend>Options</legend>
+		<div class="col-md-6">
+			<label for="latitude">Latitude(-90 -> +90):</label>
+			<input class="form-control" name="latitude" id="latitude" type="text">
+		</div>
+		<div class="col-md-6">
+			<label for="longitude">Longitude (-180 -> +180):</label>
+			<input class="form-control" name="longitude" id="longitude" type="text">
+		</div>
+		<input type="submit" id="search" value="Search for photo">
+	</fieldset>
+</form>
+<p id="dateAndTime"></p>
+<img class="img-rounded" id="landsatImage">
+
+<h2>Requests</h2>
+<p>
+	The form above makes requests using only the longitude (lon) and latitude (lat), which are passed as floating point numbers.<br>
+	example request url 1: <code>https://api.nasa.gov/planetary/earth/imagery?lon=-73.967&lat=40.785&api_key=DEMO_KEY</code><br>
+	However, there are several more parameters that can be passed in order to further constrain your search:
+	<ul>
+		<li><strong>dim</strong> - Width and height of image in degrees. (floating point number, default value = 0.025)</li>
+		<li><strong>date</strong> - Image date. Don't be afraid to guess a date as the API will return the most recent image before or on the requested date. (date YYY-MM-DD, default will be most recent image)</li>
+		<li><strong>cloud_score</strong> - Whether you want the api to calculate the cloud coverage. (boolean variable, default value = False)</li>
+		<li><strong>api_key</strong> - Your own personal api key! (string, default value = DEMO_KEY)</li>
+	</ul>
+	An example of a more complicated request, with a date of 2015/01/14, and requesting a cloud coverage is shown below.<br>
+	example request url 2: <code>https://api.nasa.gov/planetary/earth/imagery?lon=-73.967&lat=40.785&date=2015-01-14&cloud_score=True&api_key=DEMO_KEY</code><br>
+</p>
+<p>
+	The request for example 1 could be completed using a browser side AJAX request as follows:
+	<pre>
+		var req = new XMLHttpRequest();
+		req.open('GET', "https://api.nasa.gov/planetary/earth/imagery?lon=-73.967&lat=40.785&api_key=DEMO_KEY", true);
+		req.addEventListener('load',function(){
+			if(req.status >= 200 && req.status < 400){
+				var response = JSON.parse(req.responseText);
+			} else {
+				console.log("Error in network request: " + req.statusText);
+			}});
+		req.send();
+	</pre>
+	The code snippet is very similar to that shown on the introductory page, although some basic error handling has been added. <code>if(req.status >= 200 && req.status < 400)</code> checks 
+	for a status code in the range 200 -> 399, which indicates that there was no error, and branches to only try and parse the response if this condition is met.
+</p>
+
+<h2>Responses</h2>
+<p>
+	As previously mentioned, the API sends back a JSON object as it's response. The responses to the two example requests are shown below. They can also be viewed by opening the developer 
+	tools in your web browser and looking at the javascript console, where they are labeled as 'response1' and 'response2' respectively.<br>
+	Response 1:<br>
+	<pre id="response1"></pre>
+	Response 2:<br>
+	<pre id="response2"></pre>
+	You can see that both responses contain the same three attributes, with response 2 containing one additional attirbute. They are as follows:
+	<ul>
+		<li><strong>date</strong> - Date and time that the image was taken. (YYY-MM-DD)</li>
+		<li><strong>id</strong> - The image ID. (string)</li>
+		<li><strong>url</strong> - URL where the image can be found. (string)</li>
+		<li><strong>cloud_score</strong> - Cloud coverage in the photo. (numerical from 0 - 1)</li>
+	</ul>
+</p>
+
+<h2>Getting a Date</h2>
+<p>
+	As prevously mentioned, the landsat satellite passes over most areas of the Earth every sixteen days, making it a great tool for visualising changes to large areas over some period of time. 
+	But how can we find out which dates photos were taken at a specific location? Luckily the NASA OpenAPI gives us a way to do that too using the Earth assets endpoint.
+</p>
+
+<h2>More Requests</h2>
+<p>
+	Requests to the assets endpoint also only require a longitude and latitude to get a result back, however there are several more parameters that can be passed in order to further constrain 
+	the search:
+	<ul>
+		<li><strong>begin</strong> - The date from which you would like to search for photos. (date YYY-MM-DD, default is blank)</li>
+		<li><strong>end</strong> - The date up to which your would like to search for photos. (date YYY-MM-DD, default is today)</li>
+		<li><strong>api_key</strong> - Your own personal api key! (string, default value = DEMO_KEY)</li>
+	</ul>
+	The example below shows a request for central park ranging from today back to 2016/01/01.<br>
+	example request url 3: <code>https://api.nasa.gov/planetary/earth/assets?lon=-73.967&lat=40.785&begin=2016-01-01&api_key=DEMO_KEY</code><br>
+</p>
+
+<h2>More Responses</h3>
+<p>
+	Responses to Earth asset requests are also in JSON format. The response to the example request is showsn below, and as with the previous responses, can also be found by looking in the 
+	developers console.<br>
+	Response 3:<br>
+	<pre id="response3"></pre>
+	As you can see, the response contains the following:
+	<ul>
+		<li><strong>count</strong> - The number of photos found (also the size of the results array).</li>
+		<li><strong>results</strong> - An array of objects containing information about the photos found. Each object in the array contasins the following:</li>
+		<ul>
+			<li><strong>date</strong> - The date and time the image was taken.</li>
+			<li><strong>id</strong> - The image ID.</li>
+		</ul>
+	</ul>
+</p>
+
+<a href="/marsRoverPhotos" class="btn btn-info" role="button">Next page</a>
+
+<script src="/scripts/landsat.js"></script>

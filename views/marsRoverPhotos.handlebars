@@ -1,0 +1,122 @@
+<h1>Mars Rover Photos</h1>
+<h2>Introduction</h2>
+<p>
+	This endpoint gives users access to Mars rover photos. To me, this is by far the most amazing feature of the NASA OpenAPI as it allows us non-astronaut folk to look up actual 
+	photos taken on another planet <strong>as recently as TODAY!</strong> The API allows us to view the photo database from three Mars rovers; 
+	<a href="https://en.wikipedia.org/wiki/Spirit_(rover)">Spirit</a>, <a href="https://en.wikipedia.org/wiki/Opportunity_(rover)">Opportunity</a>, and 
+	<a href="https://en.wikipedia.org/wiki/Curiosity_(rover)">Curiosity</a>. The Spirit and Opportunity rovers landed in 2004, with the Opportunity still being in service today, and the 
+	Spirit eventually being abandoned in March 2010 due to getting stuck on soft soil. The Curiosity landed in November 2011. The form below allows you to get the most recent photos from 
+	your choice of camera on the Curiosity rover. See the requests section for more information on the different cameras.
+</p>
+
+<form action="peopleSearchResults.php" method ="GET" role="form">
+	<fieldset>
+		<legend>Photo Options</legend>
+		<div class="form-group">
+			<label for="camera">Select Camera:</label>					
+			<select class="form-control" name="camera" id="selectCamera">
+				<option value="FHAZ">Front Hazard Avoidance Camera</option>
+				<option value="RHAZ">Rear Hazard Avoidance Camera</option>
+				<option value="CHEMCAM">Chemistry and Camera Complex</option>
+				<option value="MAHLI">Mars Hard Lens Imager</option>
+				<option value="NAVCAM">Navigation Camera</option>
+			</select>
+		</div>
+		<input type="submit" id="search" value="Search for Photos">
+	</fieldset>
+</form>
+<img class="img-rounded" id="roverImage">
+
+<h2>Requests</h2>
+<p>
+	Requests to the Mars rover photos endpoint only require a date to get a response, however there are a few other options you can add to modify your search if you so wish. Firstly you can choose 
+	which rover you would like to get photos from, with <code>https://api.nasa.gov/mars-photos/api/v1/rovers/curiosity/photos?</code> being the basic request url for the Curiosity. I will be using this 
+	as the base url for all my requests and examples, but if you wanted to look at photos from the other rovers, just replace 'curiosity' with either 'spirit' or 'opportunity'. Requests can 
+	take the following parameters:
+	<ul>
+		<li>
+			<strong>sol</strong> or <strong>earth_date</strong> - Requests for rover photos must be make using <em>either</em> the Earth date or the sol. Earth dates must be entered in the form 
+			YYY_MM_DD, whilst the sol is the number of martian rotations <em>since the rover landed</em>. As an example, as of writing this, the Curiosity rover is on about sol 1274.
+		</li>
+		<li>
+			<strong>camera</strong> - The string code for the camera you would like images for. If no camera is selected then images from all cameras will be returned. A table showing which 
+			cameras are present on which rovers is shown below:<br>
+			<div class="cameraBox">
+				<img src="/img/rovercams.png" class="camerasTable"><br>
+				Image source <a href="https://api.nasa.gov/api.html#MarsPhotos">https://api.nasa.gov/api.html#MarsPhotos</a>
+			</div>
+		</li>
+		<li><strong>page</strong> - The number of pages of 25 items you would like returned. (default = 1)</li>
+		<li><strong>api_key</strong> - Your own personal api key! (string, default value = DEMO_KEY)</li>
+	</ul>
+</p>
+<p>
+	I will quickly talk through an example server side request using node js and the request module. For this, we will request 25 photos across all cameras on the curiosity rover from the 1000th sol 
+	after it's landing.
+	<pre>
+		var request = require('request');
+		request("https://api.nasa.gov/mars-photos/api/v1/rovers/curiosity/photos?sol=1000&page=1&api_key=DEMO_KEY", function(err, response, body){
+				if(!err && response.statusCode < 400){
+					var reply = JSON.parse(body);
+					console.log(reply);
+				} else {
+					console.log(err);
+					if(response){
+						console.log(response.statusCode);
+					}
+					next(err);
+				}
+			});
+	</pre>
+	A little error handling has been added, but this is only a small adaptation of the code on the first page. What is new is the addition of the actual request url (<code> 
+	https://api.nasa.gov/mars-photos/api/v1/rovers/curiosity/photos?sol=1000&page=2&api_key=DEMO_KEY</code>) and the conditional branch <code>if(!err && response.statusCode < 400)</code>. 
+	As previously with the AJAX requests, we handle errors by checking the status of the response, which is held in the <code>statusCode</code> attribute. A code less than 400 tell us 
+	everything is alright and we can process the reply. <code>var reply = JSON.parse(body)</code> parses the reply into a javascript object and <code>console.log(reply)</code> logs it to 
+	the console. If you wanted to do something else with the reply you would put your more useful code in place of <code>console.log(reply)</code>. Before you try and do something more 
+	useful though, lets take a look at what we get back.
+</p>
+
+<h2>Responses</h2>
+<p>
+	The javascript object sent back from our example request is shown below. Since there is a lot of data from this endpoint and JSON can be hard to understand, I highly recommend you open 
+	up your browser developer tools and look in the javascript console, where this response has also been logged.<br>
+	Response 1:<br>
+	<pre id="response1"></pre>
+</p>
+<p>
+	The response object is comprised of an array of photo objects called (you guessed it) 'photos'. In the code snippet in the requests section, you could log a specific array element to the console 
+	using <code>console.log(reply.photos[i])</code> where 'i' is the index of the element. Each element in the photos array has the following attributes:
+	<ul>
+		<li>
+			<strong>camera</strong> - An object itself containing the following:
+			<ul>
+				<li><strong>full_name</strong> - The full name of the camera (e.g. "Front Hazard Avoidance Camera").</li>
+				<li><strong>id</strong> - The id number of the specific camera.</li>
+				<li><strong>name</strong> - The code for the camera (e.g. "FHAC").</li>
+				<li><strong>rover_id</strong> - The id number of the rover (e.g. 5 for the Curiosity).
+			</ul>
+		</li>
+		<li><strong>earth_date</strong> - The Earth date the photo was taken, in the format YYY-MM-DD.</li>
+		<li><strong>id</strong> - The id number for the photo.</li>
+		<li><strong>img_src</strong> - The url where the image can be found.</li>
+		<li>
+			<strong>rover</strong> - An object itself containing the following:
+			<ul>
+				<li><strong>cameras</strong> - An array of the cameras available on the rover.</li>
+				<li><strong>id</strong> - The id number of the rover (e.g. 5 for the Curiosity).</li>
+				<li><strong>landing_date</strong> - The date rover images are available from, in the form YYY-MM-DD.</li>
+				<li><strong>max_date</strong> - The date rover images are available up to, in the form YYY-MM-DD.</li>
+				<li><strong>max_sol</strong> - The date rover images are available up to in sol format.</li>
+				<li><strong>name</strong> - The name of the rover (e.g. "Curiosity").</li>
+				<li><strong>total_photos</strong> - The total number of photos taken by the rover.</li>
+			</ul>
+		</li>
+		<li><strong>sol</strong> - The sol date (after landing) the photo was taken.</li>
+	</ul>
+	If you took the time to look in detail at the response, you'll have noticed that the curiosity has already amassed over 240,000 photos since it landed! Now it's time for you to take what you 
+	have learned here and start experimenting with them. Who knows what you could discover...
+</p>
+
+<a href="/additionalResources" class="btn btn-info" role="button">Next page</a>
+
+<script src="/scripts/rover.js"></script>

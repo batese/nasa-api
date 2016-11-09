@@ -1,0 +1,55 @@
+<h1>NASA OpenAPI How-to Guide</h1>
+<h2>Introduction</h2>
+<p>The NASA OpenAPI offers the public access to a bunch of interesting data endpoints. Looking for some photos from Mars? You've come to the right place.</p>
+<p>If you would like to learn more about NASA you can visit their <a href="https://www.nasa.gov/">website</a>, or if you would like the view the official API documentation 
+you can find it <a href="https://api.nasa.gov/index.html">here</a>.</p>
+
+<h2>Getting your own API key</h2>
+<p>If you plan on experimenting with this API then I suggest you go to <a href="https://api.nasa.gov/index.html">NASA OpenAPI website</a> and fill out the following form:</p>
+<img class="img-rounded" src="/img/form.png" id="apiform">
+<p>Once you fill out the form you will be rewarded with your very own API key! If that sounds like a little too much effort you can use "DEMO_KEY" 
+in your requests, however this comes with a limit of 30 requests per hour and 50 per day per IP address.</p>
+
+<h2>Contents of how-to guide</h2>
+<p>
+	Of the several parts of the NASA OpenAPI, this how-to guide will cover the following:
+	<ul>
+		<li><a href="/earth">Earth</a>: - This endpoint allows users to get satellite images for a given longitude and latitude.</li>
+		<li><a href="/marsRoverPhotos">Mars Rover Photos</a>: - This endpoint grants users access to the database of photos taken by the three Mars Rovers.</li>
+	</ul>
+</p>
+<h2>Making requests</h2>
+<p>Throughout this guide I will be showing example code for making asynchronous http requests to the API using two different methods:
+	<ul>
+		<li>
+			<strong>Browser side AJAX requests using javascript:</strong> - The following code snippet shows a very simple AJAX request.<br>
+			<pre>
+				var request = new XMLHttpRequest();
+				request.open('GET', [API url], true);
+				request.addEventListener('load', function(){
+						var reply = JSON.parse(request.responseText);
+					});
+				request.send();
+			</pre>
+			To briefly explain what's going on here; <code>var request = newXMLHttpRequest()</code> creates a new XMLHttpRequest object and stores in in the variable <code>request</code>. 
+			<code>request.open('GET', [API url], true)</code> prepares the request, giving it the parameters <code>'GET'</code> for the method, <code>[API url]</code> for the request url (for example 
+			"https://api.nasa.gov/planetary/apod"), and <code>true</code> to make this an asynchronous request. A <code>load</code> event is triggered when a reply is recieved to the request and 
+			<code>addEventListener</code> 'listens' for this event performs the callback <code>function()</code> when the event happens. The callback function handles the reply from the API, which 
+			will be in JSON (Javascript Object Notation) format. This can be parsed using <code>JSON.parse</code> and stored in a javascript variable. Finally, <code>request.send()</code> actually sends 
+			the request.
+		</li>
+		<li>
+			<strong>Server side requests using node js and the request module:</strong> - The following code snippet shows a very simple request.<br>
+			<pre>
+				var request = require('request');
+				request([options], function(err, response, body){
+						var reply = JSON.parse(body);
+					});
+			</pre>
+			This is quite similar to the browser side AJAX request, except this time we use <code>require('request')</code> to make a request object, and then call <code>request</code> passing it two 
+			arguments. <code>[options]</code> is a JSON object containing things like the url and any additional headers. If, as with the NASA OpenAPI, not additional headers are needed, you can simply 
+			pass the url. The callback function, like before, takes the reply and parses it into a javascript object.
+		</li>
+	</ul>
+</p>
+<a href="/earth" class="btn btn-info" role="button">Next page</a>

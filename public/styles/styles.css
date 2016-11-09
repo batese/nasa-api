@@ -1,0 +1,39 @@
+body {
+  padding: 40px 15px;
+  text-align: left;
+}
+
+pre {
+	text-align: left;
+}
+
+ul {
+	text-align: left;
+}
+
+img {
+	text-align: center;
+}
+
+form {
+	text-align: center;
+}
+
+.cameraBox {
+	text-align: center;
+}
+
+.camerasTable {
+	height: 600px;
+	width: auto;
+}
+
+#apiform {
+	height: 300px;
+	width: auto;
+	border: 3px solid;
+	margin-left: auto;
+	margin-right: auto;
+}
+
+
