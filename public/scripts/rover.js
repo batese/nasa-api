@@ -14,7 +14,7 @@ function bindButton(){
 				var response = JSON.parse(req.responseText);
 				document.getElementById('roverImage').src = response.photos[0].img_src;
 			} else {
-				console.log("Error in network request: " + request.statusText);
+				console.log("Error in network request: " + req.statusText);
 			}});
 		req.send();
 	})
